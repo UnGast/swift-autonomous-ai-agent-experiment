@@ -10,6 +10,7 @@ let package = Package(
         .executable(
             name: "Visual",
             targets: ["Visual"]),
+        .executable(name: "ShapePolicyEvolver", targets: ["ShapePolicyEvolver"]),
         .library(name: "Simulation", targets: ["Simulation"])
     ],
     dependencies: [
@@ -25,6 +26,7 @@ let package = Package(
             name: "Visual",
             dependencies: ["SwiftGUI", "Simulation"]),
         .target(name: "Simulation", dependencies: ["GfxMath"]),
+        .target(name: "ShapePolicyEvolver"),
         .testTarget(
             name: "swift_aiTests",
             dependencies: []),
