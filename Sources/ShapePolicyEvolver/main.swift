@@ -1,3 +1,5 @@
+import Foundation
+
 public class Area: CustomDebugStringConvertible {
   public var size: SIMD2<Int>
   public var cells: [SIMD2<Int>: CellTypes] = [:]
@@ -15,10 +17,20 @@ public class Area: CustomDebugStringConvertible {
     }
   }
 
-  public func fill(min: SIMD2<Int>, max: SIMD2<Int>) {
+  public func rect(min: SIMD2<Int>, max: SIMD2<Int>) {
     for x in min.x..<max.x {
       for y in min.y..<max.y {
         self[[x, y]] = .solid
+      }
+    }
+  }
+
+  public func circle(center: SIMD2<Int>, radius: Float) {
+    for x in 0..<size.x {
+      for y in 0..<size.y {
+        if pow(Float(center.x - x), 2) + pow(Float(center.y - y), 2) < pow(radius, 2) {
+          self[[x, y]] = .solid
+        }
       }
     }
   }
@@ -34,7 +46,7 @@ public class Area: CustomDebugStringConvertible {
     return description
   }
 
-  public func difference(to other: Area) -> Double {
+  public func difference(to other: Area) -> Float {
     var totalDifference = 0
     for x in 0..<size.x {
       for y in 0..<size.y {
@@ -43,7 +55,7 @@ public class Area: CustomDebugStringConvertible {
         }
       }
     }
-    return Double(totalDifference) / Double(size.x * size.y)
+    return Float(totalDifference) / Float(size.x * size.y)
   }
 }
 
@@ -55,20 +67,29 @@ public enum CellTypes: Int, CustomStringConvertible {
   }
 }
 
-let size = SIMD2(10, 10)
+let size = SIMD2(15, 15)
 let targetShape = Area(size: size)
-targetShape.fill(min: [2, 2], max: [8, 8])
+//targetShape.rect(min: [2, 2], max: [8, 8])
+targetShape.circle(center: [5, 5], radius: 5)
 print(targetShape)
 
 public enum CellAction: Int {
   case growLeft, growTop, growRight, growBottom
 }
 
-public class Parameter {
+public class Parameter: Equatable {
   public var value: Float
 
   public init(_ value: Float) {
     self.value = value
+  }
+
+  public func clone() -> Parameter {
+    Parameter(value)
+  }
+
+  public static func == (lhs: Parameter, rhs: Parameter) -> Bool {
+    lhs.value == rhs.value
   }
 }
 
@@ -81,12 +102,16 @@ public class Computation {
     fatalError("not implemented")
   }
 
+  public func clone() -> Computation {
+    fatalError("not implemented")
+  }
+
   public class Linear: Computation {
     public let inFeatures: Int
     public let outFeatures: Int
     public var weights: [[Parameter]]
     public var bias: [Parameter]
-    public override var parameters: [Parameter] {
+    override public var parameters: [Parameter] {
       weights.flatMap { $0 } + bias
     }
 
@@ -111,57 +136,197 @@ public class Computation {
       }
       return accOutput
     }
+
+    override public func clone() -> Computation {
+      let result = Linear(inFeatures, outFeatures)
+      result.weights = weights.reduce(into: [[Parameter]]()) {
+        $0.append($1.map { $0.clone() })
+      }
+      result.bias = bias.map { $0.clone() }
+      return result
+    }
+  }
+
+  public class Relu: Computation {
+    override public var parameters: [Parameter] {
+      []
+    }
+
+    override public func callAsFunction(_ input: [Float]) -> [Float] {
+      input.map { max(0, $0) }
+    }
+
+    override public func clone() -> Computation {
+      Relu()
+    }
+  }
+
+  public class Sequential: Computation {
+    public let children: [Computation]
+
+    override public var parameters: [Parameter] {
+      children.flatMap { $0.parameters }
+    }
+
+    public init(_ children: [Computation]) {
+      self.children = children
+    }
+
+    override public func callAsFunction(_ input: [Float]) -> [Float] {
+      var intermediate = input
+      for child in children {
+        intermediate = child(intermediate)
+      }
+      return intermediate
+    }
+
+    override public func clone() -> Computation {
+      Sequential(children.map { $0.clone() })
+    }
   }
 }
 
-// TODO: implement something like .mutate() on policy --> clone and then change params,
-// maybe add another type ParameterMutation, to keep track of mutations, generate mutations, and apply mutations that already worked again
-
 public class Policy {
-  public var computation: Computation = Computation.Linear(2, 4)
+  public var computation: Computation = Computation.Sequential([
+    Computation.Linear(2, 8),
+    Computation.Relu(),
+    Computation.Linear(8, 4),
+    Computation.Relu(),
+    Computation.Linear(4, 4),
+    Computation.Relu(),
+    Computation.Linear(4, 4),
+    Computation.Relu(),
+    Computation.Linear(4, 4),
+    Computation.Relu(),
+    Computation.Linear(4, 4)
+  ])
 
   public func getActions(at position: SIMD2<Int>) -> [CellAction] {
     let computationResult = computation([Float(position.x), Float(position.y)])
     let activeIndices = computationResult.enumerated().filter { $0.element > 0 }.map { $0.offset }
     return activeIndices.compactMap { CellAction(rawValue: Int($0)) }
   }
+
+  public func clone() -> Policy {
+    let result = Policy()
+    result.computation = computation.clone()
+    return result
+  }
 }
 
-var policy = Policy()
-var evolvedShape = Area(size: size)
-var positionQueue = [SIMD2(0, 0)]
+public class Mutation {
+  public var mutationWeights: [Float]
+  public var mutationBias: [Float]
 
-var iteration = 0
-while positionQueue.count > 0 && iteration < 3 {
-  let position = positionQueue.removeFirst()
+  public init(mutationWeights: [Float], mutationBias: [Float]) {
+    self.mutationWeights = mutationWeights
+    self.mutationBias = mutationBias
+  }
 
-  let actions = policy.getActions(at: position)
-  for action in actions {
-    switch action {
-    case .growLeft:
-      let leftPosition = position &- [1, 0]
-      evolvedShape[leftPosition] = .solid
-      positionQueue.append(leftPosition)
-    case .growTop:
-      let topPosition = position &+ [0, 1]
-      evolvedShape[topPosition] = .solid
-      positionQueue.append(topPosition)
-    case .growRight:
-      let rightPosition = position &+ [1, 0]
-      evolvedShape[rightPosition] = .solid
-      positionQueue.append(rightPosition)
-    case .growBottom:
-      let bottomPosition = position &- [0, 1]
-      evolvedShape[bottomPosition] = .solid
-      positionQueue.append(bottomPosition)
+  public static func random(for parameters: [Parameter]) -> Mutation {
+    let result = Mutation(mutationWeights: parameters.map { _ in Float.random(in: -1..<1) }, mutationBias: parameters.map { _ in Float.random(in: -1..<1) })
+    for i in 0..<result.mutationWeights.count {
+      if Double.random(in: 0..<1) > 0.05 {
+        result.mutationWeights[i] = 1
+      }
+      if Double.random(in: 0..<1) > 0.05 {
+        result.mutationBias[i] = 0
+      }
+    }
+    return result
+  }
+
+  public func apply(to parameters: [Parameter]) {
+    for (index, parameter) in parameters.enumerated() {
+      parameter.value *= mutationWeights[index]
+      parameter.value += mutationBias[index]
+    }
+  }
+}
+
+// TODO: maybe make a class MutableAgent/MutableContainer, then have property wrappers for all the parameters that can be mutated -> automatically find all mutables
+
+public func evaluatePolicy(_ policy: Policy) -> Area {
+  let evolvedShape = Area(size: size)
+  var positionQueue = [SIMD2(1, 1)]
+
+  var iteration = 0
+  while positionQueue.count > 0 && iteration < 200 {
+    let position = positionQueue.removeFirst()
+
+    let actions = policy.getActions(at: position)
+    for action in actions {
+      switch action {
+      case .growLeft:
+        let leftPosition = position &- [1, 0]
+        evolvedShape[leftPosition] = .solid
+        positionQueue.append(leftPosition)
+      case .growTop:
+        let topPosition = position &+ [0, 1]
+        evolvedShape[topPosition] = .solid
+        positionQueue.append(topPosition)
+      case .growRight:
+        let rightPosition = position &+ [1, 0]
+        evolvedShape[rightPosition] = .solid
+        positionQueue.append(rightPosition)
+      case .growBottom:
+        let bottomPosition = position &- [0, 1]
+        evolvedShape[bottomPosition] = .solid
+        positionQueue.append(bottomPosition)
+      }
+    }
+
+    iteration += 1
+  }
+
+  return evolvedShape
+}
+
+var currentGeneration = [Policy]()
+currentGeneration.append(Policy())
+
+for generationIndex in 0..<200 {
+  var individualScores = [Float]()
+  var individualOutputs = [Area]()
+  for individual in currentGeneration {
+    let output = evaluatePolicy(individual)
+    let score = targetShape.difference(to: output)
+    individualScores.append(score)
+    individualOutputs.append(output)
+  }
+  
+  let individualsByScore = zip(individualScores, currentGeneration).enumerated().shuffled().sorted { $0.1.0 < $1.1.0 }
+
+  print("best score in generation", generationIndex, individualsByScore[0].1.0)
+  print(individualOutputs[individualsByScore[0].0])
+  print("--------------------------------")
+
+  var individualsForReproduction = [Policy]()
+  outer: for individual in individualsByScore.map({ $0.1.1 }) {
+    if individualsForReproduction.count == 10 {
+      break
+    }
+
+    for compareIndividual in individualsForReproduction {
+      if individual.computation.parameters == compareIndividual.computation.parameters {
+        continue outer
+      }
+    }
+
+    individualsForReproduction.append(individual)
+  }
+
+  var nextGeneration = [Policy]()
+
+  for parent in individualsForReproduction {
+    nextGeneration.append(parent)
+    for _ in 0..<10 {
+      let mutation = Mutation.random(for: parent.computation.parameters)
+      let child = parent.clone()
+      mutation.apply(to: child.computation.parameters)
+      nextGeneration.append(child)
     }
   }
 
-  let difference = targetShape.difference(to: evolvedShape)
-
-  print(evolvedShape)
-  print("DIFF", difference)
-  print("------------------------")
-
-  iteration += 1
+  currentGeneration = nextGeneration
 }
