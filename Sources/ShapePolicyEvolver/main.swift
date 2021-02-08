@@ -77,116 +77,10 @@ public enum CellAction: Int {
   case growLeft, growTop, growRight, growBottom
 }
 
-public class Parameter: Equatable {
-  public var value: Float
+final public class CellGrowthPolicy: Evolvable {
+  public var fitness: Double = 0
+  public var sourceMutation: Mutation<CellGrowthPolicy>? = nil
 
-  public init(_ value: Float) {
-    self.value = value
-  }
-
-  public func clone() -> Parameter {
-    Parameter(value)
-  }
-
-  public static func == (lhs: Parameter, rhs: Parameter) -> Bool {
-    lhs.value == rhs.value
-  }
-}
-
-public class Computation {
-  public var parameters: [Parameter] {
-    fatalError("not implemented")
-  }
-
-  public func callAsFunction(_ input: [Float]) -> [Float] {
-    fatalError("not implemented")
-  }
-
-  public func clone() -> Computation {
-    fatalError("not implemented")
-  }
-
-  public class Linear: Computation {
-    public let inFeatures: Int
-    public let outFeatures: Int
-    public var weights: [[Parameter]]
-    public var bias: [Parameter]
-    override public var parameters: [Parameter] {
-      weights.flatMap { $0 } + bias
-    }
-
-    public init(_ inFeatures: Int, _ outFeatures: Int) {
-      self.inFeatures = inFeatures
-      self.outFeatures = outFeatures
-      self.weights = []
-      for _ in 0..<outFeatures {
-        weights.append((0..<inFeatures).map { _ in Parameter(0.5) })
-      }
-      self.bias = (0..<outFeatures).map { _ in Parameter(1) }
-    }
-
-    override public func callAsFunction(_ input: [Float]) -> [Float] {
-      var accOutput = [Float]()
-      for o in 0..<outFeatures {
-        var output = bias[o].value
-        for i in 0..<inFeatures {
-          output += input[i] * weights[o][i].value
-        }
-        accOutput.append(output)
-      }
-      return accOutput
-    }
-
-    override public func clone() -> Computation {
-      let result = Linear(inFeatures, outFeatures)
-      result.weights = weights.reduce(into: [[Parameter]]()) {
-        $0.append($1.map { $0.clone() })
-      }
-      result.bias = bias.map { $0.clone() }
-      return result
-    }
-  }
-
-  public class Relu: Computation {
-    override public var parameters: [Parameter] {
-      []
-    }
-
-    override public func callAsFunction(_ input: [Float]) -> [Float] {
-      input.map { max(0, $0) }
-    }
-
-    override public func clone() -> Computation {
-      Relu()
-    }
-  }
-
-  public class Sequential: Computation {
-    public let children: [Computation]
-
-    override public var parameters: [Parameter] {
-      children.flatMap { $0.parameters }
-    }
-
-    public init(_ children: [Computation]) {
-      self.children = children
-    }
-
-    override public func callAsFunction(_ input: [Float]) -> [Float] {
-      var intermediate = input
-      for child in children {
-        intermediate = child(intermediate)
-      }
-      return intermediate
-    }
-
-    override public func clone() -> Computation {
-      Sequential(children.map { $0.clone() })
-    }
-  }
-}
-
-public class Policy {
   public var computation: Computation = Computation.Sequential([
     Computation.Linear(2, 8),
     Computation.Relu(),
@@ -207,14 +101,32 @@ public class Policy {
     return activeIndices.compactMap { CellAction(rawValue: Int($0)) }
   }
 
-  public func clone() -> Policy {
-    let result = Policy()
+  public func clone() -> CellGrowthPolicy {
+    let result = CellGrowthPolicy()
     result.computation = computation.clone()
     return result
   }
+
+  public static func getMutant(from mutation: Mutation<CellGrowthPolicy>) -> CellGrowthPolicy {
+    switch mutation {
+    case let .random(original, policy):
+      let mutationNumbers = MutationV1.random(for: original.computation.parameters)
+      let result = original.clone()
+      mutationNumbers.apply(to: result.computation.parameters)
+      return result
+    case let .crossOver(originals, weights):
+      return originals[0]
+    }
+  }
+
+  public struct RandomMutationPolicy {
+    public var multiplicationRange = -0.5..<0.5
+    public var additionRange = -0.5..<0.5
+    public var dropoutProbability = 0.9
+  }
 }
 
-public class Mutation {
+public class MutationV1 {
   public var mutationWeights: [Float]
   public var mutationBias: [Float]
 
@@ -223,8 +135,8 @@ public class Mutation {
     self.mutationBias = mutationBias
   }
 
-  public static func random(for parameters: [Parameter]) -> Mutation {
-    let result = Mutation(mutationWeights: parameters.map { _ in Float.random(in: -1..<1) }, mutationBias: parameters.map { _ in Float.random(in: -1..<1) })
+  public static func random(for parameters: [Parameter]) -> MutationV1 {
+    let result = MutationV1(mutationWeights: parameters.map { _ in Float.random(in: -1..<1) }, mutationBias: parameters.map { _ in Float.random(in: -1..<1) })
     for i in 0..<result.mutationWeights.count {
       if Double.random(in: 0..<1) > 0.05 {
         result.mutationWeights[i] = 1
@@ -245,8 +157,7 @@ public class Mutation {
 }
 
 // TODO: maybe make a class MutableAgent/MutableContainer, then have property wrappers for all the parameters that can be mutated -> automatically find all mutables
-
-public func evaluatePolicy(_ policy: Policy) -> Area {
+public func evaluatePolicy(_ policy: CellGrowthPolicy) -> Area {
   let evolvedShape = Area(size: size)
   var positionQueue = [SIMD2(1, 1)]
 
@@ -282,8 +193,28 @@ public func evaluatePolicy(_ policy: Policy) -> Area {
   return evolvedShape
 }
 
-var currentGeneration = [Policy]()
-currentGeneration.append(Policy())
+let evolution = Evolution(
+  policy: EvolutionPolicy(),
+  randomMutationPolicy: CellGrowthPolicy.RandomMutationPolicy(),
+  initialPopulations: [
+    Population(individuals: [CellGrowthPolicy()])
+  ],
+  evaluateFitness: {
+    1 / Double(targetShape.difference(to: evaluatePolicy($0)))
+  })
+evolution.onGenerationCompleted = {
+  print("fittest individual", evolution.fittestIndividual!.fitness)
+  print(evaluatePolicy(evolution.fittestIndividual!))
+  print("---------------------------------------------------------")
+}
+
+for _ in 0..<5000 {
+  evolution.stepOneGeneration()
+}
+
+/*
+var currentGeneration = [CellGrowthPolicy]()
+currentGeneration.append(CellGrowthPolicy())
 
 for generationIndex in 0..<200 {
   var individualScores = [Float]()
@@ -301,7 +232,7 @@ for generationIndex in 0..<200 {
   print(individualOutputs[individualsByScore[0].0])
   print("--------------------------------")
 
-  var individualsForReproduction = [Policy]()
+  var individualsForReproduction = [CellGrowthPolicy]()
   outer: for individual in individualsByScore.map({ $0.1.1 }) {
     if individualsForReproduction.count == 10 {
       break
@@ -316,12 +247,12 @@ for generationIndex in 0..<200 {
     individualsForReproduction.append(individual)
   }
 
-  var nextGeneration = [Policy]()
+  var nextGeneration = [CellGrowthPolicy]()
 
   for parent in individualsForReproduction {
     nextGeneration.append(parent)
     for _ in 0..<10 {
-      let mutation = Mutation.random(for: parent.computation.parameters)
+      let mutation = MutationV1.random(for: parent.computation.parameters)
       let child = parent.clone()
       mutation.apply(to: child.computation.parameters)
       nextGeneration.append(child)
@@ -330,3 +261,4 @@ for generationIndex in 0..<200 {
 
   currentGeneration = nextGeneration
 }
+*/
