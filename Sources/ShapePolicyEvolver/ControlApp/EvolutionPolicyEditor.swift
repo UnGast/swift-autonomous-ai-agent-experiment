@@ -1,5 +1,6 @@
 import SwiftGUI
 import ExperimentalReactiveProperties
+import GraphicalControlApp
 
 class EvolutionPolicyEditor: Experimental.ComposedWidget {
   @Inject(key: "evolution")
