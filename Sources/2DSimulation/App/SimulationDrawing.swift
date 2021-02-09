@@ -2,7 +2,10 @@ import SwiftGUI
 import Simulation
 
 public class SimulationDrawing: Widget, LeafWidget {
-  private let simulation: Simulation
+  let simulation: Simulation
+  var controlledAgent: Agent {
+    simulation.agents[0]
+  }
 
   private var tileEdgeLength: Double {
     (DVec2(size) / DVec2(simulation.map.size)).elements.min()!
@@ -10,9 +13,26 @@ public class SimulationDrawing: Widget, LeafWidget {
 
   public init(simulation: Simulation) {
     self.simulation = simulation
+    super.init()
+    _ = self.onTick(processTick)
   }
 
-  override public func getBoxConfig() -> BoxConfig {
+  func processTick(_ tick: Tick) {
+    if context.keyStates[.ArrowUp] {
+      controlledAgent.queueAction(.moveForward)
+    }
+    if context.keyStates[.ArrowDown] {
+      controlledAgent.queueAction(.moveBackward)
+    }
+    if context.keyStates[.ArrowRight] {
+      controlledAgent.queueAction(.moveRight)
+    }
+    if context.keyStates[.ArrowLeft] {
+      controlledAgent.queueAction(.moveLeft)
+    }
+  }
+
+  override public func getContentBoxConfig() -> BoxConfig {
     BoxConfig(preferredSize: DSize2(20, 20))
   }
 

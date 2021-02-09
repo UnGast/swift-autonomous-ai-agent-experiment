@@ -11,7 +11,7 @@ let package = Package(
             name: "GraphicalControlApp",
             targets: ["GraphicalControlApp"]),*/
         .executable(name: "ShapePolicyEvolver", targets: ["ShapePolicyEvolver"]),
-       // .library(name: "Simulation", targets: ["Simulation"])
+        .executable(name: "2DSimulation", targets: ["2DSimulation"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -25,7 +25,7 @@ let package = Package(
         .target(
             name: "GraphicalControlApp",
             dependencies: ["SwiftGUI"]),
-        //.target(name: "Simulation", dependencies: ["GfxMath"]),
+        .target(name: "2DSimulation", dependencies: ["SwiftGUI", "GraphicalControlApp"]),
         .target(name: "ShapePolicyEvolver", dependencies: ["SwiftGUI", "GraphicalControlApp"]),
         .testTarget(
             name: "swift_aiTests",
