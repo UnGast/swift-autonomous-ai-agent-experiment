@@ -1,9 +1,13 @@
-public class Evolution<E: Evolvable> {
-  private var policy: EvolutionPolicy
+public protocol EvolutionProtocol {
+  var policy: EvolutionPolicy { get }
+}
+
+public class Evolution<E: Evolvable>: EvolutionProtocol {
+  public var policy: EvolutionPolicy
   private var randomMutationPolicy: E.RandomMutationPolicy
   private var evaluateFitness: (E) -> Double
 
-  private var populations: [Population<E>]
+  public var populations: [Population<E>]
   public private(set) var fittestIndividual: E?
 
   public var onGenerationCompleted: (() -> ())? = nil

@@ -69,8 +69,8 @@ public enum CellTypes: Int, CustomStringConvertible {
 
 let size = SIMD2(15, 15)
 let targetShape = Area(size: size)
-//targetShape.rect(min: [2, 2], max: [8, 8])
-targetShape.circle(center: [5, 5], radius: 5)
+targetShape.rect(min: [2, 2], max: [8, 8])
+//targetShape.circle(center: [5, 5], radius: 5)
 print(targetShape)
 
 public enum CellAction: Int {
@@ -84,13 +84,13 @@ final public class CellGrowthPolicy: Evolvable {
   public var computation: Computation = Computation.Sequential([
     Computation.Linear(2, 8),
     Computation.Relu(),
+    Computation.Linear(8, 8),
+    Computation.Relu(),
+    Computation.Linear(8, 16),
+    Computation.Relu(),
+    Computation.Linear(16, 8),
+    Computation.Relu(),
     Computation.Linear(8, 4),
-    Computation.Relu(),
-    Computation.Linear(4, 4),
-    Computation.Relu(),
-    Computation.Linear(4, 4),
-    Computation.Relu(),
-    Computation.Linear(4, 4),
     Computation.Relu(),
     Computation.Linear(4, 4)
   ])
@@ -197,20 +197,28 @@ let evolution = Evolution(
   policy: EvolutionPolicy(),
   randomMutationPolicy: CellGrowthPolicy.RandomMutationPolicy(),
   initialPopulations: [
+    Population(individuals: [CellGrowthPolicy()]),
     Population(individuals: [CellGrowthPolicy()])
   ],
   evaluateFitness: {
     1 / Double(targetShape.difference(to: evaluatePolicy($0)))
   })
 evolution.onGenerationCompleted = {
-  print("fittest individual", evolution.fittestIndividual!.fitness)
-  print(evaluatePolicy(evolution.fittestIndividual!))
+  //print("fittest individual", evolution.fittestIndividual!.fitness)
+  for (index, population) in evolution.populations.enumerated() {
+    print("fittest individual in population", index)
+    print(evaluatePolicy(population.fittestIndividual))
+    print(population.fittestIndividual.fitness)
+    print("#################")
+  }
   print("---------------------------------------------------------")
 }
 
-for _ in 0..<5000 {
+/*for _ in 0..<5000 {
   evolution.stepOneGeneration()
-}
+}*/
+
+openGuiControl(evolution)
 
 /*
 var currentGeneration = [CellGrowthPolicy]()

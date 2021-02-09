@@ -7,11 +7,11 @@ let package = Package(
     name: "swift_ai",
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
-        .executable(
-            name: "Visual",
-            targets: ["Visual"]),
+        /*.executable(
+            name: "GraphicalControlApp",
+            targets: ["GraphicalControlApp"]),*/
         .executable(name: "ShapePolicyEvolver", targets: ["ShapePolicyEvolver"]),
-        .library(name: "Simulation", targets: ["Simulation"])
+       // .library(name: "Simulation", targets: ["Simulation"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -23,10 +23,10 @@ let package = Package(
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
-            name: "Visual",
-            dependencies: ["SwiftGUI", "Simulation"]),
-        .target(name: "Simulation", dependencies: ["GfxMath"]),
-        .target(name: "ShapePolicyEvolver"),
+            name: "GraphicalControlApp",
+            dependencies: ["SwiftGUI"]),
+        //.target(name: "Simulation", dependencies: ["GfxMath"]),
+        .target(name: "ShapePolicyEvolver", dependencies: ["SwiftGUI", "GraphicalControlApp"]),
         .testTarget(
             name: "swift_aiTests",
             dependencies: []),

@@ -1,27 +1,22 @@
 import SwiftGUI
 import Simulation
 
-public class VisualizationApp: WidgetsApp {
-  public let simulation: Simulation
-  private var controlledAgent: Agent {
-    simulation.agents[0]
-  }
+public class GraphicalControlApp: WidgetsApp {
+  private let contentView: Widget
 
-  public init(simulation: Simulation) {
-    self.simulation = simulation
+  public init(contentView: Widget) {
+    self.contentView = contentView
     super.init(baseApp: SDL2OpenGL3NanoVGVisualApp())
   }
 
   override open func setup() {
-    let guiRoot = WidgetGUI.Root(rootWidget: DependencyProvider(provide: [Dependency(simulation)]) {
-      MainView()
-    })
+    let guiRoot = WidgetGUI.Root(rootWidget: MainView(contentView: contentView))
     guiRoot.renderObjectSystemEnabled = false
 
     let window = createWindow(guiRoot: guiRoot, options: Window.Options(background: Color(20, 36, 50, 255)), immediate: true)
 
     // TODO: expose a function on app or a flag to assume control over the simulation speed and the agents actions
-    _ = baseApp.system.onTick { [unowned self] in
+    /*_ = baseApp.system.onTick { [unowned self] in
       if baseApp.system.keyStates[.ArrowUp] {
         controlledAgent.queueAction(.moveForward)
       }
@@ -35,6 +30,6 @@ public class VisualizationApp: WidgetsApp {
         controlledAgent.queueAction(.moveLeft)
       }
       simulation.tick(deltaTime: $0.deltaTime)
-    }
+    }*/
   }
 }
