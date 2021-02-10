@@ -10,6 +10,12 @@ public class SimulationDrawing: Widget, LeafWidget {
   private var tileEdgeLength: Double {
     (DVec2(size) / DVec2(simulation.map.size)).elements.min()!
   }
+  private var mapDrawingSize: DSize2 {
+    DSize2(simulation.map.size) * tileEdgeLength
+  }
+  private var mapDrawingPos: DVec2 {
+    DVec2(size) / 2 - tileEdgeLength * DVec2(simulation.map.size) / 2
+  }
 
   public init(simulation: Simulation) {
     self.simulation = simulation
@@ -41,6 +47,8 @@ public class SimulationDrawing: Widget, LeafWidget {
   }
 
   public func draw(_ drawingContext: DrawingContext) {
+    drawingContext.transform(.translate(mapDrawingPos))
+    drawingContext.transform(.scale(DVec2(1, -1), origin: mapDrawingPos + DVec2(mapDrawingSize) / 2))
     drawMap(drawingContext)
     drawGrid(drawingContext)
     drawAgents(drawingContext)
@@ -59,11 +67,11 @@ public class SimulationDrawing: Widget, LeafWidget {
   }
 
   private func drawGrid(_ drawingContext: DrawingContext) {
-    for x in 0..<simulation.map.size.x - 1 {
-      drawingContext.drawLine(from: DVec2(Double(x + 1) * tileEdgeLength, 0), to: DVec2(Double(x + 1) * tileEdgeLength, height), paint: Paint(strokeWidth: 0.5, strokeColor: .grey)) 
+    for x in 0..<simulation.map.size.x + 1 {
+      drawingContext.drawLine(from: DVec2(Double(x) * tileEdgeLength, 0), to: DVec2(Double(x) * tileEdgeLength, mapDrawingSize.height), paint: Paint(strokeWidth: 0.5, strokeColor: .grey)) 
     }
-    for y in 0..<simulation.map.size.y - 1 {
-      drawingContext.drawLine(from: DVec2(0, Double(y + 1) * tileEdgeLength), to: DVec2(width, Double(y + 1) * tileEdgeLength), paint: Paint(strokeWidth: 0.5, strokeColor: .grey)) 
+    for y in 0..<simulation.map.size.y + 1 {
+      drawingContext.drawLine(from: DVec2(0, Double(y) * tileEdgeLength), to: DVec2(mapDrawingSize.width, Double(y) * tileEdgeLength), paint: Paint(strokeWidth: 0.5, strokeColor: .grey)) 
     }
   }
 
