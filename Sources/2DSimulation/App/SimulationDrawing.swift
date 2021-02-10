@@ -3,9 +3,6 @@ import Simulation
 
 public class SimulationDrawing: Widget, LeafWidget {
   let simulation: Simulation
-  var controlledAgent: Agent {
-    simulation.agents[0]
-  }
 
   private var tileEdgeLength: Double {
     (DVec2(size) / DVec2(simulation.map.size)).elements.min()!
@@ -19,23 +16,6 @@ public class SimulationDrawing: Widget, LeafWidget {
 
   public init(simulation: Simulation) {
     self.simulation = simulation
-    super.init()
-    _ = self.onTick(processTick)
-  }
-
-  func processTick(_ tick: Tick) {
-    if context.keyStates[.ArrowUp] {
-      controlledAgent.queueAction(.moveForward)
-    }
-    if context.keyStates[.ArrowDown] {
-      controlledAgent.queueAction(.moveBackward)
-    }
-    if context.keyStates[.ArrowRight] {
-      controlledAgent.queueAction(.moveRight)
-    }
-    if context.keyStates[.ArrowLeft] {
-      controlledAgent.queueAction(.moveLeft)
-    }
   }
 
   override public func getContentBoxConfig() -> BoxConfig {
@@ -51,7 +31,9 @@ public class SimulationDrawing: Widget, LeafWidget {
     drawingContext.transform(.scale(DVec2(1, -1), origin: mapDrawingPos + DVec2(mapDrawingSize) / 2))
     drawMap(drawingContext)
     drawGrid(drawingContext)
-    drawAgents(drawingContext)
+
+    let agents = simulation.query(Agent.self)
+    drawAgents(agents, drawingContext)
   }
 
   private func drawMap(_ drawingContext: DrawingContext) {
@@ -75,9 +57,9 @@ public class SimulationDrawing: Widget, LeafWidget {
     }
   }
 
-  private func drawAgents(_ drawingContext: DrawingContext) {
-    for agent in simulation.agents {
-      let bounds = DRect(min: DVec2(agent.position) * tileEdgeLength, max: DVec2(agent.position + 1) * tileEdgeLength)
+  private func drawAgents(_ agents: [(SimulationEntity, Agent)], _ drawingContext: DrawingContext) {
+    for (entity, agent) in agents {
+      let bounds = DRect(min: DVec2(entity.position) * tileEdgeLength, max: DVec2(entity.position + 1) * tileEdgeLength)
       drawingContext.drawRect(rect: bounds, paint: Paint(color: Color.yellow))
     }
   }

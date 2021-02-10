@@ -1,15 +1,22 @@
 import GfxMath
 
-public class Agent {
-    public var position: DVec2
-    public var queuedActions: Set<Action> = []
+public class Agent: SimulationComponent {
+    public struct Data {
+        public var queuedActions: Set<Action> = []
+    }
 
-    public init(position: DVec2) {
-        self.position = position
+    var data: Data
+    public var queuedActions: Set<Action> {
+        get { data.queuedActions }
+        set { data.queuedActions = newValue }
+    }
+
+    public init() {
+        self.data = Data(queuedActions: [])
     }
 
     public func queueAction(_ action: Action) {
-        queuedActions.insert(action)
+        data.queuedActions.insert(action)
     }
 }
 

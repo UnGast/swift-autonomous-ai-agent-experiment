@@ -1,30 +1,42 @@
 public class Simulation {
     public var map: Map
-    public var agents: [Agent]
+    public var entities: [SimulationEntity]
+    var systems: [SimulationSystem] = []
+    var deltaTime = 0.0
 
-    public init(map: Map, agents: [Agent]) {
+    public init(map: Map, entities: [SimulationEntity]) {
         self.map = map
-        self.agents = agents
+        self.entities = entities
+    }
+
+    public func addSystem(_ system: SimulationSystem) {
+        systems.append(system)
+    }
+
+    public func system(tick: ((Simulation) -> ())? = nil) {
+        addSystem(SimulationSystem(tick: tick))
+    }
+
+    public func query<C1: SimulationComponent>(_ queryComponent: C1.Type) -> [(SimulationEntity, C1)] {
+        var result = [(SimulationEntity, C1)]()
+
+        for entity in entities {
+            for component in entity.components {
+                if ObjectIdentifier(type(of: component)) == ObjectIdentifier(queryComponent) {
+                result.append((entity, component as! C1))
+                }
+            }
+        }
+
+        return result
     }
 
     public func tick(deltaTime: Double) {
-        for agent in agents {
-            let speed = 2.0
-            for action in agent.queuedActions {
-                switch action {
-                case .moveForward:
-                    agent.position.y += speed * deltaTime
-                case .moveBackward:
-                    agent.position.y -= speed * deltaTime
-                case .moveRight:
-                    agent.position.x += speed * deltaTime
-                case .moveLeft:
-                    agent.position.x -= speed * deltaTime
-                default:
-                    break
-                }
+        self.deltaTime = deltaTime
+        for system in systems {
+            if let tick = system.tick {
+                tick(self)
             }
-            agent.queuedActions = []
         }
     }
 }
