@@ -1,3 +1,5 @@
+import Foundation
+
 public class Simulation {
     public var map: Map
     public var entities: [SimulationEntity]
@@ -35,7 +37,9 @@ public class Simulation {
         self.deltaTime = deltaTime
         for system in systems {
             if let tick = system.tick {
+                var startTime = Date.timeIntervalSinceReferenceDate
                 tick(self)
+                print("system took", Date.timeIntervalSinceReferenceDate - startTime)
             }
         }
     }

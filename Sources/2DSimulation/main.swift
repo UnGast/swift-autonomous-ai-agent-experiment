@@ -8,16 +8,28 @@ map[IVec2(10, 10)] = .solid
 let mapEditor = MapEditor(map: map)
 mapEditor.fill(IRect(min: IVec2(0, 0), max: IVec2(20, 5)), with: .solid)
 
+func mapToEntities(_ map: Map) -> [SimulationEntity] {
+  var entities = [SimulationEntity]()
+
+  for x in 0..<map.size.x {
+    for y in 0..<map.size.y {
+      let type = map[IVec2(x, y)]
+      if type != .void {
+        entities.append(SimulationEntity(RectCollider(size: DSize2(1, 1)), Tile(type: type), position: DVec2(Double(x), Double(y))))
+      }
+    }
+  }
+
+  return entities
+}
+
 let simulation = Simulation(
   map: map,
   entities: [
-    SimulationEntity(RectCollider(size: DSize2(1, 1)), Agent())
-  ])
+    SimulationEntity(RectCollider(size: DSize2(1, 1)), Agent(), position: DVec2(4, 10))
+  ] + mapToEntities(map))
 
-simulation.addSystem(
-  SimulationSystem(tick: {
-    let colliders = $0.query(RectCollider.self)
-  }))
+simulation.addSystem(makeCollisionSystem())
 
 simulation.addSystem(
   SimulationSystem(tick: {
