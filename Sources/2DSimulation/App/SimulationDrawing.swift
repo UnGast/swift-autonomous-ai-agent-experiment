@@ -33,6 +33,10 @@ public class SimulationDrawing: Widget, LeafWidget {
 
     let agents = simulation.query(Agent.self)
     drawAgents(agents, drawingContext)
+
+    let (_, lidar) = simulation.query(Lidar.self)[0]
+    let points = lidar.hits.map { $0.position }
+    drawPoints(points, drawingContext)
   }
 
   private func drawMap(_ drawingContext: DrawingContext) {
@@ -60,6 +64,12 @@ public class SimulationDrawing: Widget, LeafWidget {
     for (entity, agent) in agents {
       let bounds = DRect(min: DVec2(entity.position) * tileEdgeLength, max: DVec2(entity.position + 1) * tileEdgeLength)
       drawingContext.drawRect(rect: bounds, paint: Paint(color: Color.yellow))
+    }
+  }
+
+  private func drawPoints(_ points: [DVec2], _ drawingContext: DrawingContext) {
+    for point in points {
+      drawingContext.drawRect(rect: DRect(min: point * tileEdgeLength, size: DSize2(10, 10)), paint: Paint(color: .yellow))
     }
   }
 }

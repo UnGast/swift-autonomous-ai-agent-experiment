@@ -13,6 +13,7 @@ public class Simulation {
 
     public func addSystem(_ system: SimulationSystem) {
         systems.append(system)
+        system._simulation = self
     }
 
     public func system(tick: ((Simulation) -> ())? = nil) {
@@ -36,11 +37,9 @@ public class Simulation {
     public func tick(deltaTime: Double) {
         self.deltaTime = deltaTime
         for system in systems {
-            if let tick = system.tick {
-                var startTime = Date.timeIntervalSinceReferenceDate
-                tick(self)
-                print("system took", Date.timeIntervalSinceReferenceDate - startTime)
-            }
+            var startTime = Date.timeIntervalSinceReferenceDate
+            system.tick()
+            print("system took", Date.timeIntervalSinceReferenceDate - startTime)
         }
     }
 }

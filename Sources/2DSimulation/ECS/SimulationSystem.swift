@@ -1,7 +1,16 @@
 open class SimulationSystem {
-  var tick: ((Simulation) -> ())?
+  internal var _simulation: Simulation?
+  public var simulation: Simulation {
+    _simulation!
+  }
+
+  private var _tick: ((Simulation) -> ())?
 
   public init(tick: ((Simulation) -> ())? = nil) {
-    self.tick = tick
+    self._tick = tick
+  }
+
+  open func tick() {
+    _tick!(simulation)
   }
 }
