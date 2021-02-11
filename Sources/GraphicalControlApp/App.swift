@@ -1,5 +1,4 @@
 import SwiftGUI
-import Simulation
 
 public class GraphicalControlApp: WidgetsApp {
   private let contentView: Widget

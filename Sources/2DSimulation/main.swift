@@ -26,7 +26,7 @@ func mapToEntities(_ map: Map) -> [SimulationEntity] {
 let simulation = Simulation(
   map: map,
   entities: [
-    SimulationEntity(RectCollider(size: DSize2(1, 1)), Agent(), position: DVec2(4, 10))
+    SimulationEntity(RectCollider(size: DSize2(1, 1)), Agent(), position: DVec2(4, 10), fixed: false)
   ] + mapToEntities(map))
 
 simulation.addSystem(makeCollisionSystem())

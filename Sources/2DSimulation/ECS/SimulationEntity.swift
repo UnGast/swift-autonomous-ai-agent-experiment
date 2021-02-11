@@ -2,10 +2,12 @@ import GfxMath
 
 public class SimulationEntity {
   public var position: DVec2
+  public var fixed: Bool
   internal var components: [SimulationComponent]
 
-  public init(_ components: SimulationComponent..., position: DVec2 = .zero) {
+  public init(_ components: SimulationComponent..., position: DVec2 = .zero, fixed: Bool = true) {
     self.components = components
     self.position = position
+    self.fixed = fixed
   }
 }

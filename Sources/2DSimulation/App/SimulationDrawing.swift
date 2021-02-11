@@ -1,5 +1,4 @@
 import SwiftGUI
-import Simulation
 
 public class SimulationDrawing: Widget, LeafWidget {
   let simulation: Simulation
