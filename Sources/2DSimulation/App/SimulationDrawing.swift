@@ -18,7 +18,7 @@ public class SimulationDrawing: Widget, LeafWidget {
   }
 
   override public func getContentBoxConfig() -> BoxConfig {
-    BoxConfig(preferredSize: DSize2(20, 20))
+    BoxConfig(preferredSize: DSize2(400, 400))
   }
 
   override public func performLayout(constraints: BoxConstraints) -> DSize2 {

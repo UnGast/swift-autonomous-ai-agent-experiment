@@ -47,7 +47,7 @@ public class ObjectEditor<T: Equatable>: Experimental.ComposedWidget {
   func buildProperty(_ property: Property) -> Widget {
     Experimental.SimpleRow { [unowned self] in
       Experimental.Text(styleProperties: {
-        ($0.textColor, Color.white)
+        ($0.foreground, Color.white)
       }, "\(property.0)")
 
       switch ObjectIdentifier(type(of: property.1.anyValue)) {
