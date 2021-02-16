@@ -10,9 +10,12 @@ public class Agent: SimulationComponent {
         get { data.queuedActions }
         set { data.queuedActions = newValue }
     }
+    var goal: Goal
+    var totalReward = 0.0
 
-    public init() {
+    public init(goal: Goal) {
         self.data = Data(queuedActions: [])
+        self.goal = goal
     }
 
     public func queueAction(_ action: Action) {

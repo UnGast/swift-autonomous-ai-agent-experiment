@@ -23,10 +23,12 @@ func mapToEntities(_ map: Map) -> [SimulationEntity] {
   return entities
 }
 
+let goal = Goal.reachPosition(DVec2(19, 19))
+
 let simulation = Simulation(
   map: map,
   entities: [
-    SimulationEntity(RectCollider(size: DSize2(1, 1)), Lidar(rayCount: 10), Agent(), position: DVec2(4, 10), fixed: false)
+    SimulationEntity(RectCollider(size: DSize2(1, 1)), Lidar(rayCount: 10), Agent(goal: goal), position: DVec2(4, 10), fixed: false)
   ] + mapToEntities(map))
 
 simulation.addSystem(makeCollisionSystem())
@@ -56,6 +58,8 @@ simulation.addSystem(
       agent.queuedActions = []
     }
   }))
+
+simulation.addSystem(RewardSystem())
 
 let app = GraphicalControlApp(contentView: DependencyProvider(provide: [Dependency(simulation)]) {
   MainView()
