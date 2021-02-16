@@ -13,9 +13,9 @@ public class LidarSystem: SimulationSystem {
     }
 
     colliders = simulation.query(RectCollider.self)
-    lineSegments = colliders.flatMap { getLineSegments(colliderEntity: $0) }
 
     for (entity, lidar) in lidars {
+      lineSegments = colliders.flatMap { $0.0 === entity ? [] : getLineSegments(colliderEntity: $0) }
       lidar.hits = castRays(origin: entity.position, count: lidar.rayCount)
     }
   }
@@ -34,18 +34,32 @@ public class LidarSystem: SimulationSystem {
     return hits
   }
 
-  fileprivate func castRay(origin: DVec2, direction: DVec2) -> [Lidar.Hit] {
+  fileprivate func castRay(origin: DVec2, direction: DVec2, onlyFirst: Bool = true) -> [Lidar.Hit] {
     var hits = [Lidar.Hit]()
+    var shortestDistance = Double.infinity
     let rayLine = Line(origin: origin, direction: direction)
+
     for segment in lineSegments {
       if let intersection = rayLine.intersection(segment.line),
         !(intersection.x < min(segment.point1.x, segment.point2.x) ||
         intersection.x > max(segment.point1.x, segment.point2.x) ||
         intersection.y < min(segment.point1.y, segment.point2.y) ||
         intersection.y > max(segment.point1.y, segment.point2.y)) {
-          hits.append(Lidar.Hit(position: intersection))
+
+          if onlyFirst {
+            let distance = (origin - intersection).magnitude
+            if distance < shortestDistance {
+              let hit = Lidar.Hit(position: intersection)
+              if hits.count == 0 { hits.append(hit) }
+              else { hits[0] = hit }
+              shortestDistance = distance
+            }
+          } else {
+            hits.append(Lidar.Hit(position: intersection))
+          }
       }
     }
+
     return hits
   }
 
