@@ -1,14 +1,13 @@
 import SwiftGUI
-import ExperimentalReactiveProperties
 
-public class ObjectEditor<T: Equatable>: Experimental.ComposedWidget {
-  @ExperimentalReactiveProperties.MutableProperty
+public class ObjectEditor<T: Equatable>: ComposedWidget {
+  @MutableProperty
   var object: T
 
   typealias Property = (String, AnyEditable)
   var objectProperties: [Property] = []
 
-  public init(mutableObject: ExperimentalReactiveProperties.MutableProperty<T>) {
+  public init(mutableObject: MutableProperty<T>) {
     super.init()
 
     self.$object.bindBidirectional(mutableObject)
@@ -31,28 +30,30 @@ public class ObjectEditor<T: Equatable>: Experimental.ComposedWidget {
   }
 
   override public func performBuild() {
-    rootChild = Experimental.Container(styleProperties: { _ in
+    rootChild = Container(styleProperties: { _ in
       //($0.background, Color.white)
     }) { [unowned self] in
 
-      Experimental.SimpleColumn {
+      Container {
 
-        objectProperties.map {
+        Space(.zero)
+
+        /*objectProperties.map {
           buildProperty($0)
-        }
+        }*/
       }
     }
   }
 
   func buildProperty(_ property: Property) -> Widget {
-    Experimental.SimpleRow { [unowned self] in
-      Experimental.Text(styleProperties: {
+    Container{ [unowned self] in
+      Text(styleProperties: {
         ($0.foreground, Color.white)
       }, "\(property.0)")
 
       switch ObjectIdentifier(type(of: property.1.anyValue)) {
       case ObjectIdentifier(String.self):
-        Experimental.Text("STRING PROPERTY")
+        Text("STRING PROPERTY")
       case ObjectIdentifier(Int.self):
         buildIntProperty(property)
       default:
@@ -62,12 +63,12 @@ public class ObjectEditor<T: Equatable>: Experimental.ComposedWidget {
   }
 
   func buildIntProperty(_ property: Property) -> Widget {
-    let reactive = ExperimentalReactiveProperties.MutableComputedProperty(compute: {
+    let reactive = MutableComputedProperty(compute: {
       String(describing: property.1.anyValue)
     }, apply: {
       property.1.anyValue = Int($0)
     }, dependencies: [])
 
-    return Experimental.TextInput(mutableText: reactive)
+    return TextInput(mutableText: reactive)
   }
 }

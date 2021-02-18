@@ -1,6 +1,6 @@
 import SwiftGUI
 
-public class MainView: Experimental.ComposedWidget {
+public class MainView: ComposedWidget {
   @Inject
   var simulation: Simulation
 

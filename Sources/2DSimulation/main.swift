@@ -61,10 +61,14 @@ simulation.addSystem(
 
 simulation.addSystem(RewardSystem())
 
-let app = GraphicalControlApp(contentView: DependencyProvider(provide: [Dependency(simulation)]) {
-  MainView()
-})
+let app = GraphicalControlApp(contentView: Container {
+  MainView().with(styleProperties: { _ in
+    (SimpleLinearLayout.ChildKeys.grow, 1.0)
+    (SimpleLinearLayout.ChildKeys.alignSelf, SimpleLinearLayout.Align.stretch)
+  })
+}.provide(dependencies: simulation))
 
+// THE SIMULATION TICK SHOULD RUN BEFORE THE GUI IS UPDATED, BEFORE USER EVENTS ARE PROCESSED
 _ = app.onTick {
   simulation.tick(deltaTime: $0.deltaTime)
 }

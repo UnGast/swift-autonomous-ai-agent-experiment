@@ -1,12 +1,11 @@
 import SwiftGUI
-import ExperimentalReactiveProperties
 import GraphicalControlApp
 
-class EvolutionPolicyEditor: Experimental.ComposedWidget {
+class EvolutionPolicyEditor: ComposedWidget {
   @Inject(key: "evolution")
   var evolution: EvolutionProtocol
 
-  @ExperimentalReactiveProperties.MutableProperty
+  @MutableProperty
   var evolutionPolicy: EvolutionPolicy
 
   override public init() {
@@ -19,7 +18,7 @@ class EvolutionPolicyEditor: Experimental.ComposedWidget {
   }
 
   override public func performBuild() {
-    rootChild = Experimental.Container { [unowned self] in
+    rootChild = Container { [unowned self] in
       ObjectEditor(mutableObject: $evolutionPolicy)
     }
   }
