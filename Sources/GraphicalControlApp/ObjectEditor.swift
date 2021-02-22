@@ -30,11 +30,11 @@ public class ObjectEditor<T: Equatable>: ComposedWidget {
   }
 
   override public func performBuild() {
-    rootChild = Container(styleProperties: { _ in
+    rootChild = Container().with(styleProperties: { _ in
       //($0.background, Color.white)
-    }) { [unowned self] in
+    }).withContent { [unowned self] in
 
-      Container {
+      Container().withContent {
 
         Space(.zero)
 
@@ -46,7 +46,7 @@ public class ObjectEditor<T: Equatable>: ComposedWidget {
   }
 
   func buildProperty(_ property: Property) -> Widget {
-    Container{ [unowned self] in
+    Container().withContent { [unowned self] in
       Text(styleProperties: {
         ($0.foreground, Color.white)
       }, "\(property.0)")

@@ -1,6 +1,6 @@
 import SwiftGUI
 
-public class SimulationDrawing: Widget, LeafWidget {
+public class SimulationDrawing: LeafWidget {
   let simulation: Simulation
 
   private var tileEdgeLength: Double {
@@ -25,7 +25,7 @@ public class SimulationDrawing: Widget, LeafWidget {
     constraints.constrain(boxConfig.preferredSize)
   }
 
-  public func draw(_ drawingContext: DrawingContext) {
+  override public func draw(_ drawingContext: DrawingContext) {
     drawingContext.transform(.translate(mapDrawingPos))
     drawingContext.transform(
       .scale(DVec2(1, -1), origin: mapDrawingPos + DVec2(mapDrawingSize) / 2))

@@ -1,6 +1,6 @@
 import SwiftGUI 
 
-public class MainView: ComposedWidget {
+public class MainView: ContentfulWidget {
 
   private let contentView: Widget
 
@@ -9,15 +9,19 @@ public class MainView: ComposedWidget {
     super.init()
   }
 
-  override public func performBuild() {
-    rootChild = Container(styleProperties: { _ in
+  @ExpDirectContentBuilder override public var content: ExpDirectContent {
+    Container().with(styleProperties: { _ in
       (SimpleLinearLayout.ParentKeys.alignContent, SimpleLinearLayout.Align.stretch)
-    }) { [unowned self] in 
+    }).withContent { [unowned self] in 
       contentView.with(styleProperties: { _ in
         (SimpleLinearLayout.ChildKeys.grow, 1.0)
       })
+    }
+  }
 
-      DefaultTheme()
+  override public var style: Style? {
+    Style("&") {
+      FlatTheme(primaryColor: .red, secondaryColor: .green, backgroundColor: Color(10, 20, 40, 255)).styles
     }
   }
 }
