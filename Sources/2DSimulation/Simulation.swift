@@ -1,9 +1,9 @@
 import Foundation
 
 public class Simulation {
-    public var map: Map
     public var entities: [SimulationEntity]
     var systems: [SimulationSystem] = []
+    var map: Map
     var deltaTime = 0.0
 
     public init(map: Map, entities: [SimulationEntity]) {
@@ -25,8 +25,8 @@ public class Simulation {
 
         for entity in entities {
             for component in entity.components {
-                if ObjectIdentifier(type(of: component)) == ObjectIdentifier(queryComponent) {
-                result.append((entity, component as! C1))
+                if let component = component as? C1 {
+                    result.append((entity, component))
                 }
             }
         }
@@ -37,7 +37,7 @@ public class Simulation {
     public func tick(deltaTime: Double) {
         self.deltaTime = deltaTime
         for system in systems {
-            var startTime = Date.timeIntervalSinceReferenceDate
+            let startTime = Date.timeIntervalSinceReferenceDate
             system.tick()
             print("system took", Date.timeIntervalSinceReferenceDate - startTime)
         }

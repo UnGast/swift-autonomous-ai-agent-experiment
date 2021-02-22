@@ -25,39 +25,18 @@ func mapToEntities(_ map: Map) -> [SimulationEntity] {
 
 let goal = Goal.reachPosition(DVec2(19, 19))
 
+let agent = Agent(goal: goal)
+agent.controller = .ai(AI.Model())
+
 let simulation = Simulation(
   map: map,
   entities: [
-    SimulationEntity(RectCollider(size: DSize2(1, 1)), Lidar(rayCount: 10), Agent(goal: goal), position: DVec2(4, 10), fixed: false)
+    SimulationEntity(RectCollider(size: DSize2(1, 1)), Lidar(rayCount: 10), agent, position: DVec2(4, 10), fixed: false)
   ] + mapToEntities(map))
 
 simulation.addSystem(makeCollisionSystem())
 
 simulation.addSystem(LidarSystem())
-
-simulation.addSystem(
-  SimulationSystem(tick: {
-    let agents = $0.query(Agent.self)
-
-    for (entity, agent) in agents {
-      let speed = 2.0
-      for action in agent.queuedActions {
-        switch action {
-        case .moveForward:
-          entity.position.y += speed * $0.deltaTime
-        case .moveBackward:
-          entity.position.y -= speed * $0.deltaTime
-        case .moveRight:
-          entity.position.x += speed * $0.deltaTime
-        case .moveLeft:
-          entity.position.x -= speed * $0.deltaTime
-        default:
-          break
-        }
-      }
-      agent.queuedActions = []
-    }
-  }))
 
 simulation.addSystem(RewardSystem())
 
@@ -68,27 +47,60 @@ let app = GraphicalControlApp(contentView: Container().withContent {
   })
 }.provide(dependencies: simulation))
 
-// THE SIMULATION TICK SHOULD RUN BEFORE THE GUI IS UPDATED, BEFORE USER EVENTS ARE PROCESSED
+simulation.system(tick: {
+  let keyStates = app.baseApp.system.keyStates
+  let agents = $0.query(Agent.self)
+
+  for (entity, agent) in agents {
+    switch agent.controller {
+    case .player:
+      if keyStates[.ArrowUp] {
+        agent.queueAction(.moveForward)
+      }
+      if keyStates[.ArrowDown] {
+        agent.queueAction(.moveBackward)
+      }
+      if keyStates[.ArrowRight] {
+        agent.queueAction(.moveRight)
+      }
+      if keyStates[.ArrowLeft] {
+        agent.queueAction(.moveLeft)
+      }
+    case let .ai(model):
+      let lidar = entity.query(Lidar.self)!
+      let lidarHitDistances = lidar.hits.map { ($0.position - entity.position).magnitude }
+      agent.queueAction(model.getAction(for: AI.InputObservations(lidarHitDistances: lidarHitDistances)))
+      print("IMPLEMENT AGENT AI CONTROL")
+    default:
+      break
+    }
+  }
+})
+
+simulation.system(tick: {
+  let agents = $0.query(Agent.self)
+
+  for (entity, agent) in agents {
+    let speed = 2.0
+    for action in agent.queuedActions {
+      switch action {
+      case .moveForward:
+        entity.position.y += speed * $0.deltaTime
+      case .moveBackward:
+        entity.position.y -= speed * $0.deltaTime
+      case .moveRight:
+        entity.position.x += speed * $0.deltaTime
+      case .moveLeft:
+        entity.position.x -= speed * $0.deltaTime
+      }
+    }
+    agent.queuedActions = []
+  }
+})
+
+// simulation tick should run after user events have been processed, before new frame is generated
 _ = app.onTick {
   simulation.tick(deltaTime: $0.deltaTime)
 }
-
-simulation.system(tick: {
-  let keyStates = app.baseApp.system.keyStates
-  let (_, agent) = $0.query(Agent.self)[0]
-
-  if keyStates[.ArrowUp] {
-    agent.queueAction(.moveForward)
-  }
-  if keyStates[.ArrowDown] {
-    agent.queueAction(.moveBackward)
-  }
-  if keyStates[.ArrowRight] {
-    agent.queueAction(.moveRight)
-  }
-  if keyStates[.ArrowLeft] {
-    agent.queueAction(.moveLeft)
-  }
-})
 
 try! app.start()

@@ -10,4 +10,13 @@ public class SimulationEntity {
     self.position = position
     self.fixed = fixed
   }
+
+  public func query<C: SimulationComponent>(_ componentType: C.Type) -> C? {
+    for component in components {
+      if let component = component as? C {
+        return component
+      }
+    }
+    return nil
+  }
 }

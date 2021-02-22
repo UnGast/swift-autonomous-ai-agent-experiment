@@ -12,6 +12,7 @@ public class Agent: SimulationComponent {
     }
     var goal: Goal
     var totalReward = 0.0
+    var controller: Controller?
 
     public init(goal: Goal) {
         self.data = Data(queuedActions: [])
@@ -26,5 +27,9 @@ public class Agent: SimulationComponent {
 extension Agent {
     public enum Action: Int {
         case moveLeft, moveForward, moveRight, moveBackward
+    }
+
+    public enum Controller {
+        case player, ai(AI.Model)
     }
 }
