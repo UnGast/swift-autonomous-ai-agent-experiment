@@ -22,11 +22,12 @@ let package = Package(
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
+        .target(name: "Evolution"),
         .target(
             name: "GraphicalControlApp",
             dependencies: ["SwiftGUI"]),
-        .target(name: "2DSimulation", dependencies: ["SwiftGUI", "GraphicalControlApp"]),
-        .target(name: "ShapePolicyEvolver", dependencies: ["SwiftGUI", "GraphicalControlApp"]),
+        .target(name: "2DSimulation", dependencies: ["SwiftGUI", "GraphicalControlApp", "Evolution"]),
+        .target(name: "ShapePolicyEvolver", dependencies: ["SwiftGUI", "GraphicalControlApp", "Evolution"]),
         .testTarget(
             name: "swift_aiTests",
             dependencies: []),
