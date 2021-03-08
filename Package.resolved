@@ -12,20 +12,20 @@
       },
       {
         "package": "ColorizeSwift",
-        "repositoryURL": "https://github.com/mtynior/ColorizeSwift",
+        "repositoryURL": "https://github.com/mtynior/ColorizeSwift.git",
         "state": {
-          "branch": "master",
-          "revision": "04f419e2737daaa3ae8a543dd9d96f1e7b15d9ab",
-          "version": null
+          "branch": null,
+          "revision": "2a354639173d021f4648cf1912b2b00a3a7cd83c",
+          "version": "1.6.0"
         }
       },
       {
-        "package": "Easing",
-        "repositoryURL": "https://github.com/manuelCarlos/Easing.git",
+        "package": "CombineX",
+        "repositoryURL": "https://github.com/cx-org/CombineX.git",
         "state": {
-          "branch": null,
-          "revision": "7f4ef32ad74dcaab33855adce2779dee9f2a919a",
-          "version": "2.0.6"
+          "branch": "master",
+          "revision": "d351c155d4cfb311b459e06f5b824b1721950f1f",
+          "version": null
         }
       },
       {
@@ -38,17 +38,8 @@
         }
       },
       {
-        "package": "Runtime",
-        "repositoryURL": "https://github.com/wickwirew/Runtime.git",
-        "state": {
-          "branch": null,
-          "revision": "a848b81e1a0100801f572e5273ffe4352fd54088",
-          "version": "2.2.2"
-        }
-      },
-      {
         "package": "GLUtils",
-        "repositoryURL": "https://github.com/UnGast/swift-gl-utils.git",
+        "repositoryURL": "https://github.com/UnGast/swift-gl-utils",
         "state": {
           "branch": "master",
           "revision": "b04851b2c252c72c5bf50a69dde5514c9f386897",
@@ -56,12 +47,12 @@
         }
       },
       {
-        "package": "swift-numerics",
-        "repositoryURL": "https://github.com/apple/swift-numerics",
+        "package": "SwiftGUI",
+        "repositoryURL": "https://github.com/UnGast/swift-gui",
         "state": {
-          "branch": null,
-          "revision": "6b24333510e9044cf4716a07bed65eeed6bc6393",
-          "version": "0.0.8"
+          "branch": "master",
+          "revision": "9a2f554a9ea2d96731b37d428160b395074cc9be",
+          "version": null
         }
       },
       {

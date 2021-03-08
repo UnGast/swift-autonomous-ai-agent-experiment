@@ -1,7 +1,7 @@
 import SwiftGUI
 
-public class ObjectEditor<T: Equatable>: ComposedWidget {
-  @MutableProperty
+public class ObjectEditor<T: Equatable>: ContentfulWidget {
+  /*@State
   var object: T
 
   typealias Property = (String, AnyEditable)
@@ -70,5 +70,5 @@ public class ObjectEditor<T: Equatable>: ComposedWidget {
     }, dependencies: [])
 
     return TextInput(mutableText: reactive)
-  }
+  }*/
 }

@@ -10,7 +10,6 @@ public class GraphicalControlApp: WidgetsApp {
 
   override open func setup() {
     let guiRoot = WidgetGUI.Root(rootWidget: MainView(contentView: contentView))
-    guiRoot.renderObjectSystemEnabled = false
 
     let window = createWindow(guiRoot: guiRoot, options: Window.Options(background: Color(20, 36, 50, 255)), immediate: true)
   }

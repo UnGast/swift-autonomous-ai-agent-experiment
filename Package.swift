@@ -16,7 +16,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(name: "SwiftGUI", path: "../swift-gui"),
+        .package(name: "SwiftGUI", url: "https://github.com/UnGast/swift-gui", .branch("master")),
         .package(name: "GfxMath", path: "../swift-gfx-math")
     ],
     targets: [

@@ -4,25 +4,21 @@ public class SimulationDrawing: LeafWidget {
   let simulation: Simulation
 
   private var tileEdgeLength: Double {
-    (DVec2(size) / DVec2(simulation.map.size)).elements.min()!
+    (DVec2(bounds.size) / DVec2(simulation.map.size)).elements.min()!
   }
   private var mapDrawingSize: DSize2 {
     DSize2(simulation.map.size) * tileEdgeLength
   }
   private var mapDrawingPos: DVec2 {
-    DVec2(size) / 2 - tileEdgeLength * DVec2(simulation.map.size) / 2
+    DVec2(bounds.size) / 2 - tileEdgeLength * DVec2(simulation.map.size) / 2
   }
 
   public init(simulation: Simulation) {
     self.simulation = simulation
   }
 
-  override public func getContentBoxConfig() -> BoxConfig {
-    BoxConfig(preferredSize: DSize2(400, 400))
-  }
-
   override public func performLayout(constraints: BoxConstraints) -> DSize2 {
-    constraints.constrain(boxConfig.preferredSize)
+    constraints.constrain(DSize2(40, 40))
   }
 
   override public func draw(_ drawingContext: DrawingContext) {

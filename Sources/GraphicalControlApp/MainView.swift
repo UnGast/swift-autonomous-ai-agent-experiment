@@ -9,18 +9,18 @@ public class MainView: ContentfulWidget {
     super.init()
   }
 
-  @ExpDirectContentBuilder override public var content: ExpDirectContent {
-    Container().with(styleProperties: { _ in
-      (SimpleLinearLayout.ParentKeys.alignContent, SimpleLinearLayout.Align.stretch)
+  @DirectContentBuilder override public var content: DirectContent {
+    Container().with(styleProperties: {
+      (\.$alignContent, .stretch)
     }).withContent { [unowned self] in 
-      contentView.with(styleProperties: { _ in
-        (SimpleLinearLayout.ChildKeys.grow, 1.0)
+      contentView.with(styleProperties: {
+        (\.$grow, 1)
       })
     }
   }
 
   override public var style: Style? {
-    Style("&") {
+    Style("&") {} nested: {
       FlatTheme(primaryColor: .red, secondaryColor: .green, backgroundColor: Color(10, 20, 40, 255)).styles
     }
   }

@@ -1,6 +1,6 @@
 import SwiftGUI
 
-public class MainView: ComposedWidget {
+public class MainView: ContentfulWidget {
   @Inject
   var simulation: Simulation
 
@@ -8,7 +8,7 @@ public class MainView: ComposedWidget {
     super.init()
   }
 
-  override public func performBuild() {
-    rootChild = SimulationDrawing(simulation: simulation)
+  @DirectContentBuilder override public var content: DirectContent {
+    SimulationDrawing(simulation: simulation)
   }
 }

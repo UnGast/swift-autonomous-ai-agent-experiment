@@ -41,9 +41,9 @@ simulation.addSystem(LidarSystem())
 simulation.addSystem(RewardSystem())
 
 let app = GraphicalControlApp(contentView: Container().withContent {
-  MainView().with(styleProperties: { _ in
-    (SimpleLinearLayout.ChildKeys.grow, 1.0)
-    (SimpleLinearLayout.ChildKeys.alignSelf, SimpleLinearLayout.Align.stretch)
+  MainView().with(styleProperties: {
+    (\.$grow, 1)
+    (\.$alignSelf, .stretch)
   })
 }.provide(dependencies: simulation))
 
